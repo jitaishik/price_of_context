@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+price_of_context_env/
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Generated defended-profile datasets (reproducible via Defenses/ scripts)
+eeyore-data-anon.parquet
+eeyore-dp-simple.parquet
+eeyore-dp-mix-iter.parquet
+
+# Generated synthetic-profile / session-generation output directories
+random_synthetic_profiles/
+random_synthetic_profiles_qwen/
+symptoms_synthetic_profiles/
+symptoms_synthetic_profiles_qwen/
+anonymized/

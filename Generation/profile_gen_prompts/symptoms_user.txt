@@ -1,0 +1,18 @@
+Generate a fictional therapy client profile using ONLY the information below.
+
+Symptoms:
+{symptoms}
+
+Allowed Values (you MUST choose from these lists only):
+
+Age:
+['0~24', '25~44', '45~64', '65+', 'Cannot be identified']
+
+Gender:
+['Male', 'Female', 'Cannot be identified']
+
+Marital Status:
+['Single', 'Married', 'Divorced', 'Widowed', 'Separated', 'Other', 'Cannot be identified']
+
+Occupation:
+["Academic Research Associate","Accounting. Low entry, bookkeeper.","Assistant religious ed teacher and daycare worker","Bank employee","Call center employee","Cleaning job","College student","Commission based job","Computer Science Engineer","Customer service and technical expert","Doctor","Drummer","Electrical engineer","Employee in a company, potentially managerial or administrative","Engineer in Mechanical Engineering","Film Student and Podcast Host","Gas station worker","Graduate in a field related to their master's degree","Home Depot employee","Hotel or Conference Center Worker","Intern","Kmart employee","McDonald's employee","Medical student","Military","Music industry professional","Non-profit library system employee","Part-time job","Peace Corps volunteer","PhD in immunology","PhD student","Recent college graduate looking for a job in economic research","Retail","Retired Nurse","Self employed","Special education teacher","Student","Tech person","Technical support specialist","Teller at a bank","Unemployed","Works from home","Writer","college student","hair braider","Cannot be identified"]

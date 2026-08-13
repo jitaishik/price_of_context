@@ -1,0 +1,43 @@
+Write the script of a mental health counseling session between a counselor and a client with at least 30 turns.
+You are given:
+
+    - The client’s medical information, describing the severity of different symptoms
+    - The client’s level of resistance toward counseling
+
+## INPUTS
+
+Client Medical Information:
+{client_medical_information}
+
+Client Resistance towards counseling:
+{client_resistance}
+
+## Global Constraints
+
+1. Use natural conversational signals whenever appropriate (e.g., "mm-hm", "um", "yeah","right","...").
+2. Both clients and counselors should take their time to explain their thoughts with multiple sentences at once. Make sure that the client and counselor ***must use multi-sentence utterances (3–5 sentences) when explaining experiences, emotions, reflections, or psychoeducation***.
+3. The session should progress through ideas gradually. Avoid advancing to a new topic or conclusion in consecutive turns. Most topics should be explored across multiple turns with depth, not resolved immediately.
+
+## Client utterances guidelines and constraints:
+
+1. The client utterances should be consistent with their medical information and resistance.
+2. The client should express symptoms indirectly through lived experiences rather than naming them explicitly.
+3. Use everyday, non-clinical language. The client should not self-diagnose or use professional terminology, except for informal mental health terms or concepts previously introduced by the counselor.
+4. The client should describe emotions and difficulties concretely (thoughts, feelings, situations), often as short narratives rather than isolated statements.
+5. The client can express ambivalence, confusion, or difficulty naming emotions when appropriate.
+
+## Counselor utterances guidelines and constraints:
+
+1. The counselor does not have direct knowledge of the client’s symptoms and should not make assumptions about them.
+2. Counselor responses should be warm, empathetic, and grounded.
+3. The counselor should focus on building trust and fostering a collaborative therapeutic atmosphere.
+
+## Output Format
+
+    - Output only valid JSON.
+    - Do not include explanations, comments, or markdown.
+Required Json Format:
+[
+  {{"role": "counselor", "content": "Hello, how are you feeling today?"}},
+  {{"role": "client", "content": "Uh… I’m okay, I guess. Just kind of tired."}}
+]

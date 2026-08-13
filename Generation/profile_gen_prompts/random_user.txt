@@ -1,0 +1,8 @@
+Generate a fictional therapy client profile based on the attributes below.
+
+Client Attributes:
+- Age: {age}
+- Gender: {gender}
+- Occupation: {occupation}
+- Marital Status: {marital_status}
+- Symptoms: {symptoms}
