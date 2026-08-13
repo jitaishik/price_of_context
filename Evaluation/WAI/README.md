@@ -16,3 +16,7 @@ Scores generated counseling sessions on the **Working Alliance Inventory (WAI)**
 ```bash
 python wai.py -i sessions/ -o wai_results/ -model gpt
 ```
+
+## Aggregating Results
+
+`rating.ipynb` reads a directory of `wai.py` output files and, for each of the twelve items, averages the score across all valid sessions (per `../../valid_indices.json`).

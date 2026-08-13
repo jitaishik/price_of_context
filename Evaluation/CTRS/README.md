@@ -23,3 +23,7 @@ Scores generated counseling sessions on the **Cognitive Therapy Rating Scale (CT
 ```bash
 python ctrs.py -i sessions/ -o ctrs_results/ -model gpt
 ```
+
+## Aggregating Results
+
+`rating.ipynb` reads a directory of `ctrs.py` output files and, for each of the six dimensions above, averages the score across all valid sessions (per `../../valid_indices.json`).

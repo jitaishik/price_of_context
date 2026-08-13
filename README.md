@@ -40,12 +40,12 @@ Session generation, evaluation, and defenses in this repo call a **local vLLM Op
 python -m vllm.entrypoints.openai.api_server --model <path_to_model> --port 8000
 ```
 
-Then set up the Python environment:
+Then set up the Python environment (no `requirements.txt` is provided; install the libraries used across the codebase, listed in [References/Libraries](#referenceslibraries), plus `pandas`, `numpy`, `scikit-learn`, and `matplotlib`):
 
 ```bash
 python3 -m venv price_of_context_env
 source price_of_context_env/bin/activate
-pip install -r requirements.txt
+pip install vllm langchain langchain-openai sentence-transformers huggingface_hub pandas numpy scikit-learn matplotlib
 ```
 
 ## Repository Structure
@@ -97,8 +97,8 @@ Price_Of_context/
     ├── attribute_extraction_results.ipynb#   Attribute extraction attack results/metrics
     ├── situation_extraction.py           #   Situation extraction (feeds attribute/linkage attacks)
     ├── situation_non_member_valid_dedup_2_th_100.json  # Non-member situations for MIA
-    ├── MIA_profile_situation.ipynb       #   Membership inference attack
-    ├── Linkage_profile_situation.ipynb   #   Linkage attack
+    ├── MIA.ipynb                         #   Membership inference attack
+    ├── Linkage.ipynb                     #   Linkage attack
     ├── CTRS/                             #   Cognitive Therapy Rating Scale (LLM-as-judge)
     │   ├── ctrs.py
     │   ├── rating.ipynb
@@ -115,7 +115,7 @@ Price_Of_context/
 |---|---|
 | **Eeyore** (seed patient profiles) | [HuggingFace](https://huggingface.co/datasets/liusiyang/eeyore_profile) |
 
-`eeyore-data.parquet` in this repo already contains the seed profiles used for the experiments; `valid_indices.json` selects the 310 unique profiles (with complete demographic information, no duplicates) used to generate synthetic sessions, and `valid_non_member_indices_dedup_2_th_100.json` / `situation_non_member_valid_dedup_2_th_100.json` hold the disjoint non-member set used for membership inference.
+`eeyore-data.parquet` in this repo already contains the seed profiles used for the experiments; `valid_indices.json` selects the 310 unique profiles (with complete demographic information, no duplicates) used to generate synthetic sessions, and `valid_non_member_indices_dedup_2_th_100.json` / `situation_non_member_valid_dedup_2_th_100.json` hold the disjoint non-member set used for membership inference. `valid_indices_all.json` lists all candidate profile indices considered before filtering down to `valid_indices.json`; it is kept for reference but not read by any script in this repo.
 
 ## Reproducing Experiments
 
@@ -143,10 +143,10 @@ Run `Evaluation/diversity.ipynb` (Distinct-n, EAD, Entropy-n, LDD) and `Evaluati
 
 ```bash
 cd Evaluation
-python situation_extraction.py -i <sessions_dir> -o extracted_situations.json -m <model_path>
+python situation_extraction.py -i <sessions_dir> -o extracted_situations.json -model <model_name>
 python attribute_extraction.py -i <sessions_dir> -o extracted_attributes
 ```
-Then score membership inference and linkage using `MIA_profile_situation.ipynb` and `Linkage_profile_situation.ipynb`.
+Then score membership inference and linkage using `MIA.ipynb` and `Linkage.ipynb`.
 
 **5. Build defended profile datasets**
 
@@ -162,9 +162,9 @@ python Defenses/create_eeyore_dp_mix_iter.py --input eeyore-data.parquet --valid
 
 ```bash
 cd Defenses/Profile
-python generate_profile_sessions.py -i ../eeyore-data-anon.parquet   -o out_fp_coarsprof   -model llama
-python generate_profile_sessions.py -i ../eeyore-dp-simple.parquet   -o out_fp_noiseprof   -model llama
-python generate_profile_sessions.py -i ../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -model llama
+python generate_profile_sessions.py -i ../../eeyore-data-anon.parquet   -o out_fp_coarsprof   -model llama
+python generate_profile_sessions.py -i ../../eeyore-dp-simple.parquet   -o out_fp_noiseprof   -model llama
+python generate_profile_sessions.py -i ../../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -model llama
 
 cd ../..
 python Defenses/anonymize_sessions_ner.py 'Defenses/Profile/out_fp_coarsprof/*.json' -o out_fp_ner -m qwen_model_path

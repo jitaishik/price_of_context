@@ -1,6 +1,6 @@
 # Defenses / Profile
 
-Generates Full Profile (FP) sessions from a *defended* profile parquet produced by one of the [Defense Algorithms](../README.md#defense-algorithms), instead of the raw `eeyore-data.parquet` used by [`Generation/script_profile.py`](../../Generation/README.md). Otherwise identical generation logic (same `profile.txt` prompt, same `get_client_information(mode="default")` split).
+Generates Full Profile (FP) sessions from a *defended* profile parquet produced by one of the [Defense Algorithms](../README.md#defense-algorithms), instead of the raw `eeyore-data.parquet` used by [`Generation/script_profile.py`](../../Generation/README.md). Otherwise same generation logic (same `profile.txt` prompt, same `get_client_information(mode="default")` split), except this script stops after 500 unique source profiles have been processed — a cap not present in `Generation/script_profile.py`.
 
 | Argument | Description |
 |---|---|

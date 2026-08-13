@@ -1,6 +1,6 @@
 # Defenses
 
-Scripts that build *defended* (anonymized/perturbed) versions of the Eeyore profile data, and a post-hoc defense applied directly to already-generated sessions. Run the algorithm scripts below from the repository root (they default to reading `eeyore-data.parquet` relative to the current directory).
+Scripts that build *defended* (anonymized/perturbed) versions of the Eeyore profile data, and a post-hoc defense applied directly to already-generated sessions. Run the algorithm scripts below from the repository root. `generalize_profiles.py` and `create_eeyore_dp_simple.py` default to reading `eeyore-data.parquet`/`valid_indices.json` from the current directory; `create_eeyore_dp_mix_iter.py` instead defaults to `../eeyore-data.parquet`/`../valid_indices.json` (one level up), so pass `--input`/`--valid-idx` explicitly when running it from the repository root, as in the example below.
 
 ## Defense Algorithms
 
@@ -26,7 +26,7 @@ python Defenses/create_eeyore_dp_mix_iter.py \
     --output eeyore-dp-mix-iter.parquet --model path_to_model --keep-prob 0.8
 ```
 
-NoiseProf and NoiseIterMix accept `--keep-prob` (probability of leaving each demographic attribute unchanged; the paper evaluates `p ∈ {0.2, 0.5, 0.8}`, reported as perturbation probability `1 - keep-prob`). NoiseIterMix additionally accepts `--sim-threshold` (default `0.6`) and `--max-iters` (default `5`) controlling how far the situation must diverge from the original.
+NoiseProf and NoiseIterMix accept `--keep-prob` (default `0.7`; probability of leaving each demographic attribute unchanged; the paper evaluates `p ∈ {0.2, 0.5, 0.8}`, reported as perturbation probability `1 - keep-prob`). NoiseIterMix additionally accepts `--sim-threshold` (default `0.6`) and `--max-iters` (default `5`) controlling how far the situation must diverge from the original, `--st-model` (default `all-MiniLM-L6-v2`, the sentence-transformers model used to measure that divergence), and `--no-references` (flag; disables cross-referencing other profiles' situations when mixing). `--len-tol` (default `1.15`) caps how much longer the mixed situation may be relative to the original.
 
 ## NER-based De-identification (post-hoc)
 
@@ -38,6 +38,9 @@ Unlike the three algorithms above, `anonymize_sessions_ner.py` runs on already-*
 | `--model` / `-m` | Model registered in vLLM |
 | `--output-dir` / `-o` | Where to write anonymized sessions (default `./anonymized`) |
 | `--valid-indices` / `-V` | Optional: JSON file of valid 0-based indices; if given, only sessions whose `(i - 1)` is listed are processed |
+| `--base-url` / `-u` | vLLM server base URL (default `$VLLM_BASE_URL` or `http://localhost:8000`) |
+| `--api-key` / `-k` | API key for the vLLM server (default `$VLLM_API_KEY` or `dummy-key`) |
+| `--delay` / `-d` | Seconds to sleep between requests (default `0.0`) |
 
 ```bash
 # FP sessions: process every file

@@ -25,7 +25,7 @@ python script_profile.py   -o out_fp -model llama
 
 ## Synthetic Profile Generation
 
-Builds synthetic (non-real) patient profiles as JSON files, one per source Eeyore symptom set, for the Appendix E comparison of generation grounded vs. not grounded in real patient profiles. Run from this directory; output directories (`random_synthetic_profiles_qwen`, `symptoms_synthetic_profiles_qwen`) must exist before running.
+Builds synthetic (non-real) patient profiles as JSON files, one per source Eeyore symptom set, for the Appendix E comparison of generation grounded vs. not grounded in real patient profiles. Run from this directory. Both scripts take the same `-o/--output_dir` (default `.`) and `-model/--model_name` (default `llama`) flags as the real-profile scripts above, and each creates its own output directory named `<output_dir>_<model_name>` (e.g. `-o random_synthetic_profiles -model qwen` writes to `random_synthetic_profiles_qwen`) — no `mkdir` needed beforehand. Both load their generation prompts from `profile_gen_prompts/` (`random_system.txt`/`random_user.txt` and `symptoms_system.txt`/`symptoms_user.txt`).
 
 | Variant | Script | Strategy |
 |---|---|---|
@@ -33,9 +33,11 @@ Builds synthetic (non-real) patient profiles as JSON files, one per source Eeyor
 | Symptoms-grounded | `symptoms_synthetic_profiles.py` | Asks the LLM to invent all demographic attributes and a situation from symptoms alone |
 
 ```bash
-mkdir -p random_synthetic_profiles_qwen && python random_synthetic_profiles.py
-mkdir -p symptoms_synthetic_profiles_qwen && python symptoms_synthetic_profiles.py
+python random_synthetic_profiles.py -o random_synthetic_profiles -model qwen
+python symptoms_synthetic_profiles.py -o symptoms_synthetic_profiles -model qwen
 ```
+
+Note: `random_synthetic_profiles.py` currently has a `NameError` bug (it defines `pprofile_list` but iterates over the undefined `profile_list`) that causes it to fail before writing any output; `symptoms_synthetic_profiles.py` is unaffected.
 
 ## Session Generation from Synthetic Profiles
 
@@ -49,3 +51,7 @@ Generates Full Profile (FP) sessions from the synthetic profiles above instead o
 python script_synth_profile_sessions.py --profile_source_dir random_synthetic_profiles_qwen   -o out_random_synth -model llama
 python script_synth_profile_sessions.py --profile_source_dir symptoms_synthetic_profiles_qwen  -o out_symptoms_synth -model llama
 ```
+
+## Generation Prompts
+
+`profile_gen_prompts/` holds the system/user prompt pairs used above: `random_system.txt` / `random_user.txt` (random-attribute variant) and `symptoms_system.txt` / `symptoms_user.txt` (symptoms-grounded variant).
