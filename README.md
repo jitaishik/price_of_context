@@ -55,7 +55,6 @@ Each folder below has its own README with argument tables and example commands.
 ```
 Price_Of_context/
 │
-├── Price_of_context.pdf                  # The paper
 ├── eeyore-data.parquet                   # Source patient profiles (Eeyore dataset)
 ├── valid_indices.json                    # Indices of the 310 valid seed profiles used
 ├── valid_indices_all.json                # Indices of all candidate profiles considered
