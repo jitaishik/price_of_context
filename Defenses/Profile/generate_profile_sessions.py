@@ -1,9 +1,3 @@
-"""Generate Full Profile (FP) sessions from a *defended* profile parquet
-file (produced by Defenses/generalize_profiles.py, create_eeyore_dp_simple.py,
-or create_eeyore_dp_mix_iter.py). Identical generation logic to
-Generation/script_profile.py; the only difference is that the input parquet
-is required explicitly via --input_file rather than the raw eeyore-data.parquet."""
-
 import argparse
 import json
 import os
@@ -34,7 +28,7 @@ if __name__ == "__main__":
                      "(CoarsProf / NoiseProf / NoiseIterMix).")
     parser.add_argument("-o", "--output_dir", type=str, default=".",
                         help="Directory to save the session results.")
-    parser.add_argument("-model", "--model_name", type=str, default="llama",
+    parser.add_argument("-m", "--model_name", type=str, default="llama",
                         help="Name of the model used for generation.")
     parser.add_argument("-i", "--input_file", type=str, required=True,
                         help="Path to the defended profile parquet file, e.g. "
@@ -58,8 +52,6 @@ if __name__ == "__main__":
     prompt_text = load_prompt(PROMPTS_DIR, "profile.txt")
 
     for i in range(len(profile_list)):
-        if len(source_list) == 500:
-            break
         if id_list[i] not in source_list and i in valid_indices:
             source_list.append(id_list[i])
             if f"session_{i+1}.json" in os.listdir(args.output_dir):

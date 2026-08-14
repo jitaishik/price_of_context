@@ -5,24 +5,26 @@ import random
 import sys
 import traceback
 from pathlib import Path
+import numpy as np
 
 from sentence_transformers import SentenceTransformer
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common.llm_client import call_vllm_text
+from common.llm_client import call_vllm_text, get_vllm_client_for_model, VLLM_BASE_URL
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EEYORE_DATA_PATH = REPO_ROOT / "eeyore-data.parquet"
+VALID_INDICES_PATH = REPO_ROOT / "valid_indices.json"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--vllm-host",     default="localhost")
-parser.add_argument("--vllm-port",     default=8000, type=int)
-parser.add_argument("--model",         default="path_to_model")
-parser.add_argument("--input",         default="../eeyore-data.parquet")
-parser.add_argument("--valid-idx",     default="../valid_indices.json")
-parser.add_argument("--output",        default="eeyore-dp-mix-iter.parquet")
-parser.add_argument("--keep-prob",     default=0.7, type=float,
+parser.add_argument("-m", "--model_name", type=str, default="llama",
+                    help="Name of the model used for generation.")
+parser.add_argument("-o", "--output",        default="eeyore-dp-mix-iter.parquet")
+parser.add_argument("-p", "--noise-prob",     default=0.7, type=float,
                     help="Probability of keeping each attribute unchanged (default: 0.7)")
 parser.add_argument("--seed",          default=42, type=int)
-parser.add_argument("--sim-threshold", default=0.6, type=float,
+parser.add_argument("-th", "--sim-threshold", default=0.6, type=float,
                     help="Stop iterating once cosine similarity to original <= this (default: 0.6)")
 parser.add_argument("--max-iters",     default=5, type=int,
                     help="Maximum divergence iterations on the situation text (default: 5)")
@@ -35,9 +37,9 @@ parser.add_argument("--no-references", action="store_true",
                     help="Disable attribute-matched reference situations in the divergence step")
 args = parser.parse_args()
 
-VLLM_BASE = f"http://{args.vllm_host}:{args.vllm_port}/v1"
-MODEL     = args.model
-P_KEEP    = args.keep_prob
+VLLM_BASE = VLLM_BASE_URL
+MODEL, _  = get_vllm_client_for_model(args.model_name)
+P_KEEP    = 1 - args.noise_prob
 P_ADD     = 1.0 - P_KEEP
 random.seed(args.seed)
 
@@ -84,23 +86,22 @@ _OCC_TO_CLUSTER: dict = {}
 for _ci, _cluster in enumerate(OCCUPATION_CLUSTERS):
     for _occ in _cluster:
         _OCC_TO_CLUSTER[_occ] = _ci
-model = None
+
 print(f"Loading sentence-transformer '{args.st_model}' ...")
 model = SentenceTransformer(args.st_model)
 
 
 def cosine_similarity(a: str, b: str) -> float:
     """Cosine similarity between two texts using the sentence-transformer."""
-    import numpy as np
     emb = model.encode([a, b])
     va, vb = np.asarray(emb[0]), np.asarray(emb[1])
     va = va / (np.linalg.norm(va) + 1e-12)
     vb = vb / (np.linalg.norm(vb) + 1e-12)
     return float(va @ vb)
-print(f"Loading {args.input} ...")
-df = pd.read_parquet(args.input)
+print(f"Loading {EEYORE_DATA_PATH} ...")
+df = pd.read_parquet(EEYORE_DATA_PATH)
 
-with open(args.valid_idx) as f:
+with open(VALID_INDICES_PATH) as f:
     valid_indices = set(json.load(f))
 
 print(f"Total rows: {len(df):,}, Valid indices: {len(valid_indices)}")

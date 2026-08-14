@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -10,7 +9,11 @@ import pandas as pd
 from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common.llm_client import get_vllm_client
+from common.llm_client import get_vllm_client_for_model
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EEYORE_DATA_PATH = REPO_ROOT / "eeyore-data.parquet"
+VALID_INDICES_PATH = REPO_ROOT / "valid_indices.json"
 
 # ---- occupation → broad category ----------------------------------------
 OCCUPATION_CATEGORIES = {
@@ -197,25 +200,27 @@ def anonymize_profile(profile: dict, anon_situation: str | None = None) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Anonymize eeyore profile data.")
-    parser.add_argument("--input", default="eeyore-data.parquet",
-                        help="Path to the source parquet file.")
-    parser.add_argument("--output", default="eeyore-data-anon.parquet",
+    parser.add_argument("-o", "--output", default="eeyore-data-anon.parquet",
                         help="Path to write the anonymized parquet file.")
-    parser.add_argument("--base-url", default="http://localhost:8000/v1",
-                        help="Base URL of the local vLLM server (default: http://localhost:8000/v1).")
-    parser.add_argument("--model", default="qwen",
-                        help="Model path/name as registered in vLLM (default: 'qwen').")
+    parser.add_argument("-model", "--model_name", type=str, default="llama",
+                        help="Name of the model used for generation.")
     parser.add_argument("--batch-size", type=int, default=50,
                         help="Number of rows to process per progress checkpoint.")
     parser.add_argument("--no-llm", action="store_true",
                         help="Skip LLM-based situation anonymization (only apply rule-based field generalisation).")
     args = parser.parse_args()
 
-    # Load data
-    print(f"Loading {args.input} …")
-    df = pd.read_parquet(args.input)
+    # Load data, restricted to valid indices only
+    print(f"Loading {EEYORE_DATA_PATH} …")
+    df_full = pd.read_parquet(EEYORE_DATA_PATH)
+
+    with open(VALID_INDICES_PATH, "r") as f:
+        valid_indices = json.load(f)
+    valid = sorted(set(int(i) for i in valid_indices))
+
+    df = df_full.iloc[valid].reset_index(drop=True)
     total = len(df)
-    print(f"  {total} rows loaded.")
+    print(f"  {total} rows loaded ({len(df_full)} total, filtered to valid_indices).")
 
     output_path = Path(args.output)
     if output_path.exists():
@@ -231,9 +236,10 @@ def main():
         return
 
     vllm_client = None
+    model_url = None
     if not args.no_llm:
-        print(f"  Connecting to vLLM server at {args.base_url} (model: {args.model}) …")
-        vllm_client = get_vllm_client(args.base_url)
+        model_url, vllm_client = get_vllm_client_for_model(args.model_name)
+        print(f"  Connecting to vLLM server (model: {args.model_name}) …")
 
     rows_to_process = df.iloc[start_idx:].reset_index(drop=True)
     new_rows = []
@@ -249,7 +255,7 @@ def main():
 
         if vllm_client is not None:
             situations = [p.get("situation of the client", "") for p in profiles]
-            anon_situations = generalise_situation_batch(vllm_client, args.model, situations)
+            anon_situations = generalise_situation_batch(vllm_client, model_url, situations)
         else:
             anon_situations = [None] * len(profiles)
 
