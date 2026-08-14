@@ -81,10 +81,10 @@ Price_Of_context/
 │   └── profile_gen_prompts/              #   Prompts for synthetic profile generation
 │
 ├── Defenses/                             # Pre-generation and post-hoc defenses (see Defenses/README.md)
-│   ├── generalize_profiles.py            #   Build CoarsProf-anonymized profile dataset
-│   ├── create_eeyore_dp_simple.py        #   Build NoiseProf-perturbed profile dataset
-│   ├── create_eeyore_dp_mix_iter.py      #   Build NoiseIterMix profile dataset
-│   ├── anonymize_sessions_ner.py         #   Post-hoc NER redaction on generated sessions (FP or CS)
+│   ├── CoarsProf.py                      #   Build CoarsProf-anonymized profile dataset
+│   ├── NoiseProf.py                      #   Build NoiseProf-perturbed profile dataset
+│   ├── NoiseIterMix.py                   #   Build NoiseIterMix profile dataset
+│   ├── NER.py                            #   Post-hoc NER redaction on generated sessions (FP or CS)
 │   ├── Profile/                          #   Generate FP sessions from a defended profile parquet
 │   │   └── generate_profile_sessions.py
 │   └── Situation/                        #   Generate CS sessions from a defended profile parquet
@@ -150,26 +150,27 @@ Then score membership inference and linkage using `MIA.ipynb` and `Linkage.ipynb
 
 **5. Build defended profile datasets**
 
-Run from the repository root, passing paths explicitly (the three scripts don't share default path conventions):
+Each script hardcodes its input to `eeyore-data.parquet`/`valid_indices.json` at the repository root, so it can be run from anywhere with just an output path (`-o`/`--output`, resolved relative to the current directory):
 
 ```bash
-python Defenses/generalize_profiles.py       --input eeyore-data.parquet --output eeyore-data-anon.parquet    # CoarsProf
-python Defenses/create_eeyore_dp_simple.py   --input eeyore-data.parquet --valid-idx valid_indices.json --output eeyore-dp-simple.parquet    # NoiseProf
-python Defenses/create_eeyore_dp_mix_iter.py --input eeyore-data.parquet --valid-idx valid_indices.json --output eeyore-dp-mix-iter.parquet  # NoiseIterMix
+python Defenses/CoarsProf.py    -o eeyore-data-anon.parquet   -model llama   # CoarsProf
+python Defenses/NoiseProf.py    -o eeyore-dp-simple.parquet   -m llama -p 0.3    # NoiseProf
+python Defenses/NoiseIterMix.py -o eeyore-dp-mix-iter.parquet -m llama -p 0.2    # NoiseIterMix
 ```
+`-p`/`--noise-prob` is the probability that each demographic attribute is perturbed (the paper's `p ∈ {0.2, 0.5, 0.8}` maps directly onto this flag).
 
 **6. Generate defended sessions and re-run evaluation**
 
 ```bash
 cd Defenses/Profile
-python generate_profile_sessions.py -i ../../eeyore-data-anon.parquet   -o out_fp_coarsprof   -model llama
-python generate_profile_sessions.py -i ../../eeyore-dp-simple.parquet   -o out_fp_noiseprof   -model llama
-python generate_profile_sessions.py -i ../../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -model llama
+python generate_profile_sessions.py -i ../../eeyore-data-anon.parquet   -o out_fp_coarsprof   -m llama
+python generate_profile_sessions.py -i ../../eeyore-dp-simple.parquet   -o out_fp_noiseprof   -m llama
+python generate_profile_sessions.py -i ../../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -m llama
 
 cd ../..
-python Defenses/anonymize_sessions_ner.py 'Defenses/Profile/out_fp_coarsprof/*.json' -o out_fp_ner -m qwen_model_path
+python Defenses/NER.py 'Defenses/Profile/out_fp_coarsprof/*.json' -o out_fp_ner -m qwen
 ```
-Repeat evaluation steps 2-4 on each defended output directory. The same pattern applies under `Defenses/Situation/generate_situation_sessions.py` for defenses on CS generations (Appendix G), and `anonymize_sessions_ner.py` accepts an optional `--valid-indices` flag when restricting to an evaluation subset.
+Repeat evaluation steps 2-4 on each defended output directory. The same pattern applies under `Defenses/Situation/generate_situation_sessions.py` for defenses on CS generations (Appendix G); `NER.py` always filters processed sessions against `valid_indices.json` at the repository root.
 
 ## Cite
 
