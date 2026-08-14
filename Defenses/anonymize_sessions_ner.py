@@ -1,13 +1,3 @@
-"""NER-based post-hoc de-identification (NER) defense: prompts an LLM to
-replace PII (names, ages, occupations, marital status, gender statements,
-organizations, contact info) in already-generated counseling session
-transcripts with neutral placeholders.
-
-Used on both Full Profile (FP) and Contextual Situation (CS) generations.
-Pass --valid-indices to additionally restrict processing to sessions whose
-source profile index is in a given valid-indices file (useful when the
-input directory contains more sessions than were used for evaluation)."""
-
 import glob
 import json
 import os
@@ -15,10 +5,13 @@ import re
 import sys
 import time
 import argparse
+from pathlib import Path
 
-from openai import OpenAI
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common.llm_client import get_vllm_client_for_model
 
-DEFAULT_MODEL = "model_path"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+VALID_INDICES_PATH = REPO_ROOT / "valid_indices.json"
 MAX_TOKENS = 8192
 TEMPERATURE = 0.0
 
@@ -45,15 +38,6 @@ Rules:
 USER_TEMPLATE = """Anonymize the following counseling session transcript. Return only the transcript lines, no extra text.
 
 {history_text}"""
-
-
-def load_valid_indices(path: str) -> set:
-    """Load a JSON list of valid 0-based indices into a set."""
-    with open(path, "r", encoding="utf-8") as f:
-        indices = json.load(f)
-    if not isinstance(indices, list):
-        raise ValueError(f"{path} must contain a JSON list of integers.")
-    return set(int(i) for i in indices)
 
 
 def session_index(filename: str):
@@ -89,15 +73,7 @@ def parse_history(history_text: str, original: list) -> list:
     return result
 
 
-def build_client(base_url: str, api_key: str) -> OpenAI:
-    """Create an OpenAI-compatible client pointed at the vLLM server."""
-    return OpenAI(
-        base_url=base_url.rstrip("/") + "/v1",
-        api_key="dummy-key",  # vLLM accepts any non-empty string when auth is off
-    )
-
-
-def anonymize_history(client: OpenAI, model: str, history: list) -> list:
+def anonymize_history(client, model: str, history: list) -> list:
     """Send history to the judge model via vLLM and return anonymized version."""
     history_text = get_history(history)
 
@@ -115,7 +91,7 @@ def anonymize_history(client: OpenAI, model: str, history: list) -> list:
     return parse_history(raw, history)
 
 
-def process_file(client: OpenAI, model: str, input_path: str, output_dir: str) -> str:
+def process_file(client, model: str, input_path: str, output_dir: str) -> str:
     """Process a single session file. Returns output path."""
     with open(input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -147,31 +123,15 @@ def main():
         help="Input JSON file(s) or glob pattern (e.g., './sessions/*.json')",
     )
     parser.add_argument(
-        "--base-url", "-u",
-        default=os.environ.get("VLLM_BASE_URL", "http://localhost:8000"),
-        help="vLLM server base URL (default: http://localhost:8000, or $VLLM_BASE_URL)",
-    )
-    parser.add_argument(
-        "--api-key", "-k",
-        default=os.environ.get("VLLM_API_KEY", "dummy-key"),
-        help="API key for vLLM server if auth is enabled (default: EMPTY, or $VLLM_API_KEY)",
-    )
-    parser.add_argument(
-        "--model", "-m",
-        default=DEFAULT_MODEL,
-        help=f"Model name as registered in vLLM (default: {DEFAULT_MODEL})",
+        "-model", "--model_name",
+        type=str,
+        default="llama",
+        help="Name of the model used for generation.",
     )
     parser.add_argument(
         "--output-dir", "-o",
         default="./anonymized",
         help="Directory to write anonymized files (default: ./anonymized)",
-    )
-    parser.add_argument(
-        "--valid-indices", "-V",
-        default=None,
-        help="JSON file containing a list of valid 0-based indices. If given, a file "
-             "named 'session_i.json' is processed only if (i - 1) is in this list. "
-             "Omit to process every matched file unconditionally (default).",
     )
     parser.add_argument(
         "--delay", "-d",
@@ -193,40 +153,41 @@ def main():
     files = sorted(set(files))
 
     # Filter by valid indices: keep 'session_i.json' only if (i - 1) is valid.
-    if args.valid_indices:
-        valid = load_valid_indices(args.valid_indices)
-        kept, skipped = [], []
-        for path in files:
-            idx = session_index(path)
-            if idx is None:
-                skipped.append((path, "filename does not match session_<i>.json"))
-            elif (idx - 1) in valid:
-                kept.append(path)
-            else:
-                skipped.append((path, f"index {idx - 1} not in valid_indices"))
+    with open(VALID_INDICES_PATH, "r") as f:
+        valid_indices = json.load(f)
+    valid = set(int(i) for i in valid_indices)
 
-        print(f"Valid idx  : {args.valid_indices}  "
-              f"({len(kept)} kept, {len(skipped)} skipped)")
-        if skipped:
-            for path, reason in skipped:
-                print(f"  skip {os.path.basename(path)}: {reason}")
+    kept, skipped = [], []
+    for path in files:
+        idx = session_index(path)
+        if idx is None:
+            skipped.append((path, "filename does not match session_<i>.json"))
+        elif (idx - 1) in valid:
+            kept.append(path)
+        else:
+            skipped.append((path, f"index {idx - 1} not in valid_indices"))
 
-        files = kept
-        if not files:
-            print("No files remain after valid-indices filtering.", file=sys.stderr)
-            sys.exit(1)
+    print(f"Valid idx  : {VALID_INDICES_PATH}  "
+          f"({len(kept)} kept, {len(skipped)} skipped)")
+    if skipped:
+        for path, reason in skipped:
+            print(f"  skip {os.path.basename(path)}: {reason}")
 
-    print(f"Model      : {args.model}")
-    print(f"vLLM server: {args.base_url}")
+    files = kept
+    if not files:
+        print("No files remain after valid-indices filtering.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Model      : {args.model_name}")
     print(f"Files      : {len(files)}  ->  output: {args.output_dir}\n")
 
-    client = build_client(args.base_url, args.api_key)
+    model_url, client = get_vllm_client_for_model(args.model_name)
 
     success, failed = 0, []
     for i, path in enumerate(files, 1):
         print(f"[{i}/{len(files)}] {path} ...", end=" ", flush=True)
         try:
-            out = process_file(client, args.model, path, args.output_dir)
+            out = process_file(client, model_url, path, args.output_dir)
             print(f"OK  -> {out}")
             success += 1
         except Exception as e:
