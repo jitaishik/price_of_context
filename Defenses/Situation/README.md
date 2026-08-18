@@ -5,13 +5,11 @@ Generates Contextual Situation (CS) sessions from a *defended* profile parquet p
 | Argument | Description |
 |---|---|
 | `-o` / `--output_dir` | Directory to save the generated `session_<i>.json` files |
-| `-m` / `--model_name` | Judge/generator model: `llama` or `qwen` |
+| `-model` / `--model_name` | Judge/generator model: `llama` or `qwen` |
 | `-i` / `--input_file` | **Required.** Path to the defended profile parquet file |
 
 ```bash
-python generate_situation_sessions.py -i ../eeyore-data-anon.parquet   -o out_cs_coarsprof   -m llama
-python generate_situation_sessions.py -i ../eeyore-dp-simple.parquet   -o out_cs_noiseprof    -m llama
-python generate_situation_sessions.py -i ../eeyore-dp-mix-iter.parquet -o out_cs_noiseitermix -m llama
+python generate_situation_sessions.py -i ../eeyore-data-anon.parquet   -o out_cs_coarsprof   -model llama
+python generate_situation_sessions.py -i ../eeyore-dp-simple.parquet   -o out_cs_noiseprof    -model llama
+python generate_situation_sessions.py -i ../eeyore-dp-mix-iter.parquet -o out_cs_noiseitermix -model llama
 ```
-
-The paper reports these results (defenses applied to CS generation) in Appendix G; the main paper body reports defenses applied to FP generation (see [`../Profile/README.md`](../Profile/README.md)).
