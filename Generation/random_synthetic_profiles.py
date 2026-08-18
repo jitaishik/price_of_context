@@ -64,7 +64,7 @@ if __name__ == "__main__":
     source_list = []
 
     df = pd.read_parquet(EEYORE_DATA_PATH)
-    pprofile_list = df["profile"].tolist()
+    profile_list = df["profile"].tolist()
     id_list = df["id_source"].tolist()
     random.seed(42)
     age_list = ['0~24', '25~44', '45~64', '65+', 'Cannot be identified']
