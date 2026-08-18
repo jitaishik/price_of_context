@@ -1,6 +1,6 @@
 # Generation
 
-Scripts for generating synthetic counseling sessions from the Eeyore seed profiles (`../eeyore-data.parquet`) at each of the three privacy levels, plus scripts for generating and using *synthetic* (non-real) patient profiles as an alternative to real ones (Appendix E of the paper).
+Scripts for generating synthetic counseling sessions from the Eeyore seed profiles (`../eeyore-data.parquet`) at each of the three privacy levels, plus scripts for generating and using *synthetic* (non-real) patient profiles as an alternative to real ones.
 
 All session-generation scripts share the following common arguments:
 
@@ -25,19 +25,17 @@ python script_profile.py   -o out_fp -model llama
 
 ## Synthetic Profile Generation
 
-Builds synthetic (non-real) patient profiles as JSON files, one per source Eeyore symptom set, for the Appendix E comparison of generation grounded vs. not grounded in real patient profiles. Run from this directory. Both scripts take the same `-o/--output_dir` (default `.`) and `-model/--model_name` (default `llama`) flags as the real-profile scripts above, and each creates its own output directory named `<output_dir>_<model_name>` (e.g. `-o random_synthetic_profiles -model qwen` writes to `random_synthetic_profiles_qwen`) — no `mkdir` needed beforehand. Both load their generation prompts from `profile_gen_prompts/` (`random_system.txt`/`random_user.txt` and `symptoms_system.txt`/`symptoms_user.txt`).
+Builds synthetic (non-real) patient profiles as JSON files, one per source Eeyore symptom set. Run from this directory. Both scripts take the same `-o/--output_dir` (default `.`) and `-model/--model_name` (default `llama`) flags as the real-profile scripts above, and each creates its own output directory named `<output_dir>_<model_name>` (e.g. `-o random_synthetic_profiles -model qwen` writes to `random_synthetic_profiles_qwen`). Both load their generation prompts from `profile_gen_prompts/` (`random_system.txt`/`random_user.txt` and `symptoms_system.txt`/`symptoms_user.txt`).
 
 | Variant | Script | Strategy |
 |---|---|---|
-| Random attributes | `random_synthetic_profiles.py` | Randomly samples age/occupation/marital status/gender, then asks the LLM to invent only a name + situation |
-| Symptoms-grounded | `symptoms_synthetic_profiles.py` | Asks the LLM to invent all demographic attributes and a situation from symptoms alone |
+| Random attributes | `random_synthetic_profiles.py` | Randomly samples age/occupation/marital status/gender, then asks the LLM to generate only a name + situation |
+| Symptoms-grounded | `symptoms_synthetic_profiles.py` | Asks the LLM to generate all demographic attributes and a situation from symptoms alone |
 
 ```bash
 python random_synthetic_profiles.py -o random_synthetic_profiles -model qwen
 python symptoms_synthetic_profiles.py -o symptoms_synthetic_profiles -model qwen
 ```
-
-Note: `random_synthetic_profiles.py` currently has a `NameError` bug (it defines `pprofile_list` but iterates over the undefined `profile_list`) that causes it to fail before writing any output; `symptoms_synthetic_profiles.py` is unaffected.
 
 ## Session Generation from Synthetic Profiles
 
