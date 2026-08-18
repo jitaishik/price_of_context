@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("-m_iter", "--max_iter", type=int, default=3,
                         help="Maximum number of turns for the session.")
     parser.add_argument("-model", "--model_name", type=str, default="gpt",
-                        help="Judge Model Name. Choose from llama, qwen, gpt and gpt-oss")
+                        help="Judge Model Name. Choose from llama, qwen, and gpt")
 
     args = parser.parse_args()
 
