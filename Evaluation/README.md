@@ -26,4 +26,4 @@ Counseling-quality scoring (CTRS, WAI) lives in their own subfolders: see [`CTRS
 | `MIA.ipynb` | Membership inference attack: AUC-ROC and TPR @ low-FPR thresholds using `attribute_extraction.py`/`situation_extraction.py` output as the reference set |
 | `Linkage.ipynb` | Linkage attack: matches extracted session attributes/situations back to source patient profiles |
 
-`situation_non_member_valid_dedup_2_th_100.json` is the held-out non-member situation set used by `MIA.ipynb` (paired with `../valid_non_member_indices_dedup_2_th_100.json` at the repo root).
+`situation_non_member_valid_dedup_2_th_100.json` is the held-out non-member situation set used by `MIA.ipynb`.
