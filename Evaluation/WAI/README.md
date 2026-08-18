@@ -11,7 +11,7 @@ Scores generated counseling sessions on the **Working Alliance Inventory (WAI)**
 
 ## Items
 
-`prompts/wai1.txt` through `prompts/wai12.txt`, one item prompt each. API calls retry with exponential backoff (`common/json_retry.call_with_backoff`, up to 5 attempts) since judge calls at this volume occasionally hit rate limits or transient errors.
+`prompts/wai1.txt` through `prompts/wai12.txt`, one item prompt each.
 
 ```bash
 python wai.py -i sessions/ -o wai_results/ -model gpt
