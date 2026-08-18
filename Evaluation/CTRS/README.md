@@ -7,7 +7,7 @@ Scores generated counseling sessions on the **Cognitive Therapy Rating Scale (CT
 | `-i` / `--input_dir` | Directory of session JSON files to score |
 | `-o` / `--output_dir` | Directory to write per-session score JSON files |
 | `-m_iter` / `--max_iter` | Number of judge samples averaged per dimension (default `3`) |
-| `-model` / `--model_name` | Judge model: `llama`, `qwen`, `gpt`, or `gpt-oss` (default `gpt`) |
+| `-model` / `--model_name` | Judge model: `llama`, `qwen`, or `gpt` (default `gpt`) |
 
 ## Rubrics
 
