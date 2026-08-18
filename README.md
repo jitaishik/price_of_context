@@ -1,8 +1,12 @@
+<p  align="center">
+  <img src='images/priv-utility.png' width='600'>
+</p>
+
 # The Price of Context: Privacy-Utility Trade-offs in Synthetic Counseling Session Generation
 
 ## Summary
 
-This codebase provides the scripts used in the experiments of the paper **"The Price of Context: Privacy-Utility Trade-offs in Synthetic Counseling Session Generation"** (currently under anonymous review at ACL). General-purpose LLMs underperform on counseling tasks, motivating specialized models trained on sensitive real-world counseling data that is rarely available due to privacy constraints. Synthetic counseling session generation offers a way around this, but the privacy-utility trade-off across different choices of private input remains underexplored. We systematically study this trade-off by generating synthetic counseling sessions from patient profiles in the [Eeyore](https://huggingface.co/datasets/liusiyang/eeyore_profile) dataset at three privacy levels:
+This codebase provides the scripts used in the experiments of the paper **"The Price of Context: Privacy-Utility Trade-offs in Synthetic Counseling Session Generation"**. General-purpose LLMs underperform on counseling tasks, motivating specialized models trained on sensitive real-world counseling data that is rarely available due to privacy constraints. Synthetic counseling session generation offers a way around this, but the privacy-utility trade-off across different choices of private input remains underexplored. We systematically study this trade-off by generating synthetic counseling sessions from patient profiles in the [Eeyore](https://huggingface.co/datasets/liusiyang/eeyore_profile) dataset at three privacy levels:
 
 * **Symptom-Only (SO):** Only a list of symptoms and their severity levels — no demographic or situational context. The highest-privacy regime.
 * **Contextual Situation (CS):** Symptoms plus the patient's background situational description. No explicit quasi-identifiers, but situations can still leak information indirectly.
@@ -23,29 +27,26 @@ We find that richer private context (situations, demographics) **improves divers
 
 > **Abstract:** The rise in mental health disorders has increased interest in LLM-based counseling agents. However, general-purpose LLMs underperform on counseling tasks, motivating the use of specialized models trained on sensitive real-world counseling data, which is often unavailable due to privacy constraints. Synthetic counseling session generation offers a potential solution, but the privacy–utility trade-off involved in different private input choices remains underexplored. In this work, we systematically study this trade-off across three privacy levels: SO (symptoms only), CS (symptoms + situation), and FP (symptoms + situation + demographics). We evaluate utility through psychological quality and diversity, and privacy through attribute extraction, membership inference, and linkage attacks. Results show that incorporating situations improves diversity, but substantially increases privacy risks. We further evaluate defenses, including NER-based redaction, demographic coarsening and situation generalization, and two proposed noise-based methods: demographic perturbation and iterative situation reframing. While simple defenses provide limited protection over FP generations, our noise-based methods reduce linkage and membership inference attack effectiveness by 20% each and attribute extraction leakage by 35%, while preserving diversity.
 
-## Key Findings
+Contact: [Aishik Mandal](mailto:aishik.mandal@tu-darmstadt.de)
 
-* **Privacy level vs. quality:** SO, CS, and FP achieve comparable CTRS/WAI scores — reducing patient information has limited impact on counseling quality.
-* **Privacy level vs. diversity:** CS and FP consistently improve lexical and situational diversity over SO; situational information (not demographics) is the main driver.
-* **Privacy level vs. leakage:** FP allows recovery of ~59% of demographic attributes and achieves >0.95 AUC on linkage; CS leaks ~47% of attributes even without explicit demographics, showing situations implicitly reveal demographic information.
-* **Defenses:** Surface-level defenses (NER, CoarsProf) offer only limited protection due to indirect leakage. The proposed noise-based defenses (NoiseProf, NoiseIterMix) are more effective — NoiseIterMix reduces MIA and linkage AUC and attribute leakage substantially while preserving diversity comparable to FP.
+Don't hesitate to send us an e-mail or report an issue, if something is broken (and it shouldn't be) or if you have further questions.
 
-Contact: see the paper for author/contact details (currently under anonymous review).
+## Creating the environment
 
-## Setting up the environment
+To create the environment for Inference and Evaluation (i.e. run scripts in folder src/ and evaluation/) use:
 
-Session generation, evaluation, and defenses in this repo call a **local vLLM OpenAI-compatible server** (`http://localhost:8000/v1`) hosting the generator/judge model, so start your vLLM server first, e.g.:
-
-```bash
-python -m vllm.entrypoints.openai.api_server --model <path_to_model> --port 8000
+```
+python3 -m venv inf_env
+source inf_env/bin/activate
+pip install -r requirements_inf_eval.txt
 ```
 
-Then set up the Python environment (no `requirements.txt` is provided; install the libraries used across the codebase, listed in [References/Libraries](#referenceslibraries), plus `pandas`, `numpy`, `scikit-learn`, and `matplotlib`):
+To create the environment for Qlora Fine-tuning (i.e. run scripts in folder qlora/) use:
 
-```bash
-python3 -m venv price_of_context_env
-source price_of_context_env/bin/activate
-pip install vllm langchain langchain-openai sentence-transformers huggingface_hub pandas numpy scikit-learn matplotlib
+```
+python3 -m venv qlora_env
+source qlora_env/bin/activate
+pip install -r requirements_qlora.txt
 ```
 
 ## Repository Structure
@@ -55,10 +56,8 @@ Each folder below has its own README with argument tables and example commands.
 ```
 Price_Of_context/
 │
-├── eeyore-data.parquet                   # Source patient profiles (Eeyore dataset)
 ├── valid_indices.json                    # Indices of the 310 valid seed profiles used
 ├── valid_indices_all.json                # Indices of all candidate profiles considered
-├── valid_non_member_indices_dedup_2_th_100.json  # Held-out non-member profile indices (for MIA)
 │
 ├── common/                               # Shared LLM client / prompt / retry / profile-parsing helpers
 │   ├── llm_client.py                     #   vLLM/OpenAI client construction
@@ -75,14 +74,14 @@ Price_Of_context/
 │   ├── script_symptoms.py                #   Generate SO sessions
 │   ├── script_situation.py               #   Generate CS sessions
 │   ├── script_profile.py                 #   Generate FP sessions
-│   ├── script_synth_profile_sessions.py  #   FP sessions from synthetic (non-real) profiles (Appendix E)
+│   ├── script_synth_profile_sessions.py  #   FP sessions from synthetic (non-real) profiles
 │   ├── random_synthetic_profiles.py      #   Build random-attribute synthetic profiles
 │   ├── symptoms_synthetic_profiles.py    #   Build symptom-grounded synthetic profiles
 │   └── profile_gen_prompts/              #   Prompts for synthetic profile generation
 │
 ├── Defenses/                             # Pre-generation and post-hoc defenses (see Defenses/README.md)
-│   ├── CoarsProf.py                      #   Build CoarsProf-anonymized profile dataset
-│   ├── NoiseProf.py                      #   Build NoiseProf-perturbed profile dataset
+│   ├── CoarsProf.py                      #   Build CoarsProf profile dataset
+│   ├── NoiseProf.py                      #   Build NoiseProf profile dataset
 │   ├── NoiseIterMix.py                   #   Build NoiseIterMix profile dataset
 │   ├── NER.py                            #   Post-hoc NER redaction on generated sessions (FP or CS)
 │   ├── Profile/                          #   Generate FP sessions from a defended profile parquet
@@ -90,12 +89,12 @@ Price_Of_context/
 │   └── Situation/                        #   Generate CS sessions from a defended profile parquet
 │       └── generate_situation_sessions.py
 │
-└── Evaluation/                           # Utility and privacy evaluation (see Evaluation/README.md)
+└── Evaluation/                           # Utility and privacy evaluation
     ├── diversity.ipynb                   #   Distinct-n, EAD, Entropy-n, LDD, SitSim
     ├── sim_2_real_sit.ipynb              #   Situation similarity analysis
     ├── attribute_extraction.py           #   Attribute extraction attack
     ├── attribute_extraction_results.ipynb#   Attribute extraction attack results/metrics
-    ├── situation_extraction.py           #   Situation extraction (feeds attribute/linkage attacks)
+    ├── situation_extraction.py           #   Situation extraction
     ├── situation_non_member_valid_dedup_2_th_100.json  # Non-member situations for MIA
     ├── MIA.ipynb                         #   Membership inference attack
     ├── Linkage.ipynb                     #   Linkage attack
@@ -113,9 +112,9 @@ Price_Of_context/
 
 | Dataset | Link |
 |---|---|
-| **Eeyore** (seed patient profiles) | [HuggingFace](https://huggingface.co/datasets/liusiyang/eeyore_profile) |
+| **Eeyore** | [HuggingFace](https://huggingface.co/datasets/liusiyang/eeyore_profile) |
 
-`eeyore-data.parquet` in this repo already contains the seed profiles used for the experiments; `valid_indices.json` selects the 310 unique profiles (with complete demographic information, no duplicates) used to generate synthetic sessions, and `valid_non_member_indices_dedup_2_th_100.json` / `situation_non_member_valid_dedup_2_th_100.json` hold the disjoint non-member set used for membership inference. `valid_indices_all.json` lists all candidate profile indices considered before filtering down to `valid_indices.json`; it is kept for reference but not read by any script in this repo.
+Download `eeyore-data.parquet` and place it in the root directory.
 
 ## Reproducing Experiments
 
@@ -170,11 +169,20 @@ python generate_profile_sessions.py -i ../../eeyore-dp-mix-iter.parquet -o out_f
 cd ../..
 python Defenses/NER.py 'Defenses/Profile/out_fp_coarsprof/*.json' -o out_fp_ner -m qwen
 ```
-Repeat evaluation steps 2-4 on each defended output directory. The same pattern applies under `Defenses/Situation/generate_situation_sessions.py` for defenses on CS generations (Appendix G); `NER.py` always filters processed sessions against `valid_indices.json` at the repository root.
+Repeat evaluation steps 2-4 on each defended output directory. The same pattern applies under `Defenses/Situation/generate_situation_sessions.py` for defenses on CS generations; `NER.py` always filters processed sessions against `valid_indices.json` at the repository root.
 
 ## Cite
-
-This paper is currently under anonymous review; a citation will be added once the paper is de-anonymized/published.
+```
+@misc{johndoe,
+      title={Paper Title}, 
+      author={authors},
+      year={2026},
+      eprint={xxxx},
+      archivePrefix={xxxx},
+      primaryClass={xxxx},
+      url={xxxx}, 
+}
+```
 
 ## References/Libraries
 
