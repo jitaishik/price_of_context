@@ -153,10 +153,10 @@ Each script hardcodes its input to `eeyore-data.parquet`/`valid_indices.json` at
 
 ```bash
 python Defenses/CoarsProf.py    -o eeyore-data-anon.parquet   -model llama   # CoarsProf
-python Defenses/NoiseProf.py    -o eeyore-dp-simple.parquet   -m llama -p 0.3    # NoiseProf
+python Defenses/NoiseProf.py    -o eeyore-dp-simple.parquet   -m llama -p 0.2    # NoiseProf
 python Defenses/NoiseIterMix.py -o eeyore-dp-mix-iter.parquet -m llama -p 0.2    # NoiseIterMix
 ```
-`-p`/`--noise-prob` is the probability that each demographic attribute is perturbed (the paper's `p ∈ {0.2, 0.5, 0.8}` maps directly onto this flag).
+`-p`/`--noise-prob` is the probability that each demographic attribute is perturbed.
 
 **6. Generate defended sessions and re-run evaluation**
 
