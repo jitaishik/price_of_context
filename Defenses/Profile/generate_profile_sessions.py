@@ -28,7 +28,7 @@ if __name__ == "__main__":
                      "(CoarsProf / NoiseProf / NoiseIterMix).")
     parser.add_argument("-o", "--output_dir", type=str, default=".",
                         help="Directory to save the session results.")
-    parser.add_argument("-m", "--model_name", type=str, default="llama",
+    parser.add_argument("-model", "--model_name", type=str, default="llama",
                         help="Name of the model used for generation.")
     parser.add_argument("-i", "--input_file", type=str, required=True,
                         help="Path to the defended profile parquet file, e.g. "
