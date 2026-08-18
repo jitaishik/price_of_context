@@ -39,24 +39,21 @@ def get_symptoms_profiles(client, model_url, symptoms_s):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate Synthetic Profile.")
+        description="Generate Full Profile (FP) synthetic counseling sessions.")
     parser.add_argument("-o", "--output_dir", type=str, default=".",
                         help="Directory to save the session results.")
     parser.add_argument("-model", "--model_name", type=str, default="llama",
-                        help="Name of the model used for situation generation.")
+                        help="Name of the model used for generation.")
     args = parser.parse_args()
-    
+
     model_url, client = get_vllm_client_for_model(args.model_name)
 
     output_dir_name = args.output_dir+"_"+args.model_name
     output_dir = Path(output_dir_name)
     output_dir.mkdir(parents=True, exist_ok=True)
-
     with open(VALID_INDICES_PATH, "r") as f:
         valid_indices = json.load(f)
-
     source_list = []
-
     df = pd.read_parquet(EEYORE_DATA_PATH)
     profile_list = df["profile"].tolist()
     id_list = df["id_source"].tolist()

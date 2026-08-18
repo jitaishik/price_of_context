@@ -38,47 +38,44 @@ def get_random_profiles(client, model_url, age_r, occupation_r, marital_status_r
         {"role": "user", "content": user_prompt},
     ]
     return call_llm_json(
-        client, "model_path", messages,
+        client, model_url, messages,
         temperature=0.7, max_tokens=500, max_retries=5,
         required_keys={"name", "situation"}, strip_code_fence="backtick")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate Random Profile.")
+        description="Generate Full Profile (FP) synthetic counseling sessions.")
     parser.add_argument("-o", "--output_dir", type=str, default=".",
                         help="Directory to save the session results.")
     parser.add_argument("-model", "--model_name", type=str, default="llama",
-                        help="Name of the model used for situation generation.")
+                        help="Name of the model used for generation.")
     args = parser.parse_args()
-    
+
     model_url, client = get_vllm_client_for_model(args.model_name)
 
     output_dir_name = args.output_dir+"_"+args.model_name
     output_dir = Path(output_dir_name)
     output_dir.mkdir(parents=True, exist_ok=True)
-
     with open(VALID_INDICES_PATH, "r") as f:
         valid_indices = json.load(f)
-
     source_list = []
-
     df = pd.read_parquet(EEYORE_DATA_PATH)
     profile_list = df["profile"].tolist()
     id_list = df["id_source"].tolist()
     random.seed(42)
-    age_list = ['0~24', '25~44', '45~64', '65+', 'Cannot be identified']
-    occupation_list = ["Academic Research Associate","Accounting. Low entry, bookkeeper.",
-                     "Assistant religious ed teacher and daycare worker","Bank employee","Call center employee","Cleaning job",
-                     "College student","Commission based job","Computer Science Engineer","Customer service and technical expert",
-                     "Doctor","Drummer","Electrical engineer","Employee in a company, potentially managerial or administrative",
-                     "Engineer in Mechanical Engineering","Film Student and Podcast Host","Gas station worker","Graduate in a field related to their master's degree",
-                     "Home Depot employee","Hotel or Conference Center Worker","Intern","Kmart employee","McDonald's employee","Medical student","Military",
-                     "Music industry professional","Non-profit library system employee","Part-time job","Peace Corps volunteer","PhD in immunology","PhD student",
-                     "Recent college graduate looking for a job in economic research","Retail","Retired Nurse","Self employed","Special education teacher","Student",
-                     "Tech person","Technical support specialist","Teller at a bank","Unemployed","Works from home","Writer","college student","hair braider","Cannot be identified"]
-    marital_list = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated', 'Other', 'Cannot be identified']
-    gender_list = ['Male', 'Female', 'Cannot be identified']
+    age_list = ["0~24", "25~44", "45~64", "65+", "Cannot be identified"]
+    occupation_list = ["Academic Research Associate", "Accounting. Low entry, bookkeeper.",
+                     "Assistant religious ed teacher and daycare worker", "Bank employee", "Call center employee", "Cleaning job",
+                     "College student", "Commission based job", "Computer Science Engineer", "Customer service and technical expert",
+                     "Doctor", "Drummer", "Electrical engineer", "Employee in a company, potentially managerial or administrative",
+                     "Engineer in Mechanical Engineering", "Film Student and Podcast Host", "Gas station worker", "Graduate in a field related to their master's degree",
+                     "Home Depot employee", "Hotel or Conference Center Worker", "Intern", "Kmart employee", "McDonald's employee", "Medical student", "Military",
+                     "Music industry professional", "Non-profit library system employee", "Part-time job", "Peace Corps volunteer", "PhD in immunology", "PhD student",
+                     "Recent college graduate looking for a job in economic research", "Retail", "Retired Nurse", "Self employed", "Special education teacher", "Student",
+                     "Tech person", "Technical support specialist", "Teller at a bank", "Unemployed", "Works from home", "Writer", "college student", "hair braider", "Cannot be identified"]
+    marital_list = ["Single", "Married", "Divorced", "Widowed", "Separated", "Other", "Cannot be identified"]
+    gender_list = ["Male", "Female", "Cannot be identified"]
 
     for i in range(len(profile_list)):
         if id_list[i] not in source_list and i in valid_indices:
@@ -111,4 +108,3 @@ if __name__ == "__main__":
 
             with open(os.path.join(output_dir_name, f"session_{i+1}.json"), "w") as f:
                 json.dump(profile_dict_i, f, indent=4)
-                
