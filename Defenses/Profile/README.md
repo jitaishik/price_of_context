@@ -5,11 +5,11 @@ Generates Full Profile (FP) sessions from a *defended* profile parquet produced 
 | Argument | Description |
 |---|---|
 | `-o` / `--output_dir` | Directory to save the generated `session_<i>.json` files |
-| `-m` / `--model_name` | Judge/generator model: `llama` or `qwen` |
+| `-model` / `--model_name` | Judge/generator model: `llama` or `qwen` |
 | `-i` / `--input_file` | **Required.** Path to the defended profile parquet file |
 
 ```bash
-python generate_profile_sessions.py -i ../eeyore-data-anon.parquet   -o out_fp_coarsprof   -m llama
-python generate_profile_sessions.py -i ../eeyore-dp-simple.parquet   -o out_fp_noiseprof    -m llama
-python generate_profile_sessions.py -i ../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -m llama
+python generate_profile_sessions.py -i ../eeyore-data-anon.parquet   -o out_fp_coarsprof   -model llama
+python generate_profile_sessions.py -i ../eeyore-dp-simple.parquet   -o out_fp_noiseprof    -model llama
+python generate_profile_sessions.py -i ../eeyore-dp-mix-iter.parquet -o out_fp_noiseitermix -model llama
 ```
