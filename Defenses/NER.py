@@ -123,18 +123,18 @@ def main():
         help="Input JSON file(s) or glob pattern (e.g., './sessions/*.json')",
     )
     parser.add_argument(
-        "-m", "--model_name",
+        "-model", "--model_name",
         type=str,
         default="llama",
         help="Name of the model used for generation.",
     )
     parser.add_argument(
-        "-o", "--output-dir",
+        "--output-dir", "-o",
         default="./anonymized",
         help="Directory to write anonymized files (default: ./anonymized)",
     )
     parser.add_argument(
-        "-d", "--delay",
+        "--delay", "-d",
         type=float,
         default=0.0,
         help="Seconds to wait between API calls to avoid overloading server (default: 0.0)",

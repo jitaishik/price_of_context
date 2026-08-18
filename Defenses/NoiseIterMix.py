@@ -18,7 +18,7 @@ EEYORE_DATA_PATH = REPO_ROOT / "eeyore-data.parquet"
 VALID_INDICES_PATH = REPO_ROOT / "valid_indices.json"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--model_name", type=str, default="llama",
+parser.add_argument("-model", "--model_name", type=str, default="llama",
                     help="Name of the model used for generation.")
 parser.add_argument("-o", "--output",        default="eeyore-dp-mix-iter.parquet")
 parser.add_argument("-p", "--noise-prob",     default=0.7, type=float,
@@ -86,7 +86,6 @@ _OCC_TO_CLUSTER: dict = {}
 for _ci, _cluster in enumerate(OCCUPATION_CLUSTERS):
     for _occ in _cluster:
         _OCC_TO_CLUSTER[_occ] = _ci
-
 print(f"Loading sentence-transformer '{args.st_model}' ...")
 model = SentenceTransformer(args.st_model)
 

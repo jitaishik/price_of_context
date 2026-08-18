@@ -16,7 +16,7 @@ EEYORE_DATA_PATH = REPO_ROOT / "eeyore-data.parquet"
 VALID_INDICES_PATH = REPO_ROOT / "valid_indices.json"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--model_name", type=str, default="llama",
+parser.add_argument("-model", "--model_name", type=str, default="llama",
                     help="Name of the model used for generation.")
 parser.add_argument("-o", "--output",      default="eeyore-dp-simple.parquet")
 parser.add_argument("-p", "--noise-prob",   default=0.7, type=float,
