@@ -231,7 +231,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output_dir", type=str, default=".",
                         help="Directory to to save the results.")
     parser.add_argument("-model", "--model_name", type=str, default="llama",
-                        help="Extraction Model Name. Choose from llama, qwen, and gpt")
+                        help="Judge Model Name. Choose from llama, qwen, gpt and gpt-oss")
 
     args = parser.parse_args()
 
